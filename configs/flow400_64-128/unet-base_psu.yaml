@@ -57,9 +57,10 @@ model:
     # ------------------------ first stage (KL-Autoencoder from LDM)
     scale_factor: 0.18215
     first_stage_cfg:
-      target: fmboost.kl_autoencoder.AutoencoderKL
-      params:
-        ckpt_path: checkpoints/sd_ae.ckpt
+      # swapped to diffusers AutoencoderKL
+      target: diffusers.models.AutoencoderKL
+      # params: (We just load from pretrained in trainer module
+      #  ckpt_path: /content/checkpoints/sd_ae.ckpt
     # ------------------------ training parameters
     lr: 3e-5
     weight_decay: 0.0
@@ -90,7 +91,7 @@ data:
       target: "fmboost.dataloader.ImageDataset" 
       params: 
         folder: /content/jpg/
-        image_size: 64
+        image_size: 256
     batch_size: 1
 
 
