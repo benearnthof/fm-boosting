@@ -90,7 +90,7 @@ data:
     train: 
       target: "fmboost.dataloader.ImageDataset" 
       params: 
-        folder: /content/jpg/
+        folder: ./jpg/
         image_size: 256
     batch_size: 1
 
