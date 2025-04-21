@@ -232,7 +232,7 @@ class TrainerFMBoost(LightningModule):
     def extract_from_batch(self, batch):
         """
         Takes batch and extracts high-res and low-res images and latent codes.
-
+        # TODO: adjust data loader. I think we need to preembed images?
         Returns:  
             hres_ims: high-res images
             hres_z: high-res latent codes (if identity first stage, this is hres_ims)

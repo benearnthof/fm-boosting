@@ -24,6 +24,8 @@ pip install matplotlib
 pip install open_clip_torch
 pip install lpips
 pip install pytorch-fid
+# pip install -U tensorboardX
+pip install -U tensorboard
 # pip install xformers
 
 # saving pretrained klautoencoder
