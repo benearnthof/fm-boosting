@@ -20,6 +20,7 @@ from fmboost.helpers import un_normalize_ims
 from fmboost.helpers import instantiate_from_config
 from fmboost.helpers import load_partial_from_config
 
+from diffusers.models import AutoencoderKL as DiffusersAutoencoderKL
 
 def hres_lres_pred_grid(hr_ims, lr_ims, hr_pred):
     # resize lr_ims if necessary
@@ -128,8 +129,8 @@ class TrainerFMBoost(LightningModule):
 
         # first stage encoding
         self.scale_factor = scale_factor
-        if exists(first_stage_cfg):
-            self.first_stage = instantiate_from_config(first_stage_cfg)
+        if True:
+            self.first_stage = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").to("cuda")
             freeze(self.first_stage)
             self.first_stage.eval()
             if self.scale_factor == 1.0:
@@ -171,7 +172,7 @@ class TrainerFMBoost(LightningModule):
         if mode == "identity":
             return lres_z
         
-        elif mode == "psu":
+        elif mode == "psu": # we use upsampling mode psu
             # if latent code is already in high-res space, we just return it (pre-computed)
             if lres_z.shape[-1] == z_size:
                 return lres_z
@@ -213,17 +214,20 @@ class TrainerFMBoost(LightningModule):
     @torch.no_grad()
     def encode_first_stage(self, x):
         if not exists(self.first_stage):
+            print("No first stage?")
             return x
         x = self.first_stage.encode(x)
-        if not isinstance(x, torch.Tensor): # hack for posterior of original VAE
-            x = x.mode()
+        if not isinstance(x, torch.Tensor): # Have to turn AutoencoderKLOutput to tensor
+            x = x.latent_dist.sample()
+            # x = x.mode()
         return x * self.scale_factor
 
     @torch.no_grad()
     def decode_first_stage(self, z):
         if not exists(self.first_stage):
             return z
-        return self.first_stage.decode(z / self.scale_factor)
+        # we add .sample since diffusers implementation returns tensor wrapped in DecoderOutput class
+        return self.first_stage.decode(z / self.scale_factor).sample
     
     def extract_from_batch(self, batch):
         """

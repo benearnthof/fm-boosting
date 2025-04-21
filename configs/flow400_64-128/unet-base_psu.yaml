@@ -2,11 +2,11 @@ model:
   target: fmboost.trainer.TrainerFMBoost
   params:
     # the low-resolution image size from which we want to up-sample
-    low_res_size: 512
+    low_res_size: 128
     # the high-resolution image size to which we want to up-sample (just
     # a dummy variable, never used except for printing; must match the
     # size of the dataset)
-    high_res_size: 1024
+    high_res_size: 256
     # ------------------------ context & conditioning
     # this is the up-sampling mode, either for the latent code if we have a
     # first stage set, or for the low-resolution image
@@ -59,8 +59,8 @@ model:
     first_stage_cfg:
       # swapped to diffusers AutoencoderKL
       target: diffusers.models.AutoencoderKL
-      # params: (We just load from pretrained in trainer module
-      #  ckpt_path: /content/checkpoints/sd_ae.ckpt
+      # params: #(We just load from pretrained in trainer module
+        # ckpt_path: /content/checkpoints/sd_ae.ckpt
     # ------------------------ training parameters
     lr: 3e-5
     weight_decay: 0.0
@@ -90,7 +90,7 @@ data:
     train: 
       target: "fmboost.dataloader.ImageDataset" 
       params: 
-        folder: ./jpg/
+        folder: /workspace/datasets/jpg
         image_size: 256
     batch_size: 1
 

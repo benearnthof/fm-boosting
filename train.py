@@ -77,7 +77,7 @@ def main():
     
     # setup loggers
     if use_wandb_logging:
-        usr_name = os.environ.get('USER', os.environ.get('USERNAME'))
+        usr_name = "benlus"
         mode = "offline" if args.use_wandb_offline else "online"
         online_logger = WandbLogger(
             dir=log_dir,
@@ -109,7 +109,9 @@ def main():
 
     """ Setup dataloader """
     data = instantiate_from_config(cfg.data)
-
+    # runs until here #################
+    ###################################
+    # investigate trainer.py
     """ Setup model """
     module = instantiate_from_config(cfg.model)
 
