@@ -24,6 +24,8 @@ pip install matplotlib
 pip install open_clip_torch
 pip install lpips
 pip install pytorch-fid
+pip uninstall numpy
+pip install numpy==1.26.4
 # pip install -U tensorboardX
 pip install -U tensorboard
 # pip install xformers
@@ -35,3 +37,4 @@ mkdir ./checkpoints
 # if we're in workspace this functions like /root for our commands
 export HF_HOME=/workspace/checkpoints
 
+# TODO: Create secrets.yaml in fm-boosting and paste wandbapikey:

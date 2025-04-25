@@ -274,7 +274,7 @@ class TrainerFMBoost(LightningModule):
 
         """ loss """
         loss = self.forward(x_target=hres_z, x_source=x_source, context=context, context_ca=context_ca)
-        self.log("train/loss", loss, on_step=True, on_epoch=True, batch_size=x_source.shape[0])
+        self.log("train/loss", loss, on_step=True, on_epoch=True, batch_size=x_source.shape[0], sync_dist=True) # added sync dist
 
         """ misc """
         self.ema_model.update()

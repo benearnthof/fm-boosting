@@ -110,6 +110,11 @@ def are_state_dicts_equal(model1, model2):
 
 are_state_dicts_equal(module.first_stage, diffusers_ae)
 
-# TODO:validation dataloader
-# TODO: wandb in config
+
+
 # TODO: precompute embeddings
+# 5-10 epochs on oxford flowers already yields really good results.
+# Larger image dataset
+# CT images/Single channel images
+# Check if the latents of the autoencoder are meaningful 
+# TODO: check sampling from checkpoint
