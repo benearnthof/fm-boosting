@@ -115,6 +115,13 @@ are_state_dicts_equal(module.first_stage, diffusers_ae)
 # TODO: precompute embeddings
 # 5-10 epochs on oxford flowers already yields really good results.
 # Larger image dataset
+# TODO: aria2c for academic torrent of CT images
+# TODO: preprocess CT image dataset into nice slices/custom dataloader.
 # CT images/Single channel images
 # Check if the latents of the autoencoder are meaningful 
 # TODO: check sampling from checkpoint
+# TODO: use tmux to train so ssh session doesnt crash
+# TODO: triplecheck training parameters from paper
+# TODO: integrate with other models 
+# TODO: build docker container
+# TODO: Eval on test set
