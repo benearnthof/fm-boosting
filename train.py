@@ -143,6 +143,7 @@ def main():
         gpu_kwargs = {
             'accelerator': 'gpu',
             'strategy': ('ddp_find_unused_parameters_true' if args.find_unused_parameters else "ddp")
+            #'strategy': 'ddp_notebook'        
         }
         if args.devices > 0:
             gpu_kwargs["devices"] = args.devices

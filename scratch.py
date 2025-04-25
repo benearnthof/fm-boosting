@@ -48,7 +48,7 @@ class train_args:
         self.load_weights = None
         self.num_nodes = 1
         self.devices = -1
-        self.find_unused_parameters = "ddp strategy, should not be since we only train 1 lightning module"
+        self.find_unused_parameters = "ddp_notebook"
         self.p2p_disable = False
         self.seed = 2025
         self.tqdm_refresh_rate = 1
@@ -62,50 +62,54 @@ cfg = OmegaConf.load(args.config)
 module = instantiate_from_config(cfg.model)
 
 
-# diffusers_ae = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae")
+diffusers_ae = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").to("cuda")
 
-# module.first_stage.to("cuda")
-# loader = instantiate_from_config(cfg.data)
-# loader.setup()
-# dl = loader._train_dataloader()
+module.first_stage.to("cuda")
+loader = instantiate_from_config(cfg.data)
+loader.setup()
+dl = loader._train_dataloader()
 
-# x = next(iter(dl))
-# x.shape
-# # quick encode decode check
-# x_latent = module.first_stage.encode(x.to("cuda"))
-# # hack for posterior of original VAE
-# x_latent = x_latent.latent_dist.sample()
-# x_latent.shape
+x = next(iter(dl))
+x.shape
+# quick encode decode check
+x_latent = module.first_stage.encode(x.to("cuda"))
+# hack for posterior of original VAE
+x_latent = x_latent.latent_dist.sample()
+x_latent.shape
 
-# x_recon =  module.first_stage.decode(x_latent).sample
-# x_recon.shape
+x_recon =  module.first_stage.decode(x_latent).sample
+x_recon.shape
 
-# import torchvision.transforms as T
-# from PIL import Image
-# import torch
+import torchvision.transforms as T
+from PIL import Image
+import torch
 
-# orig_pil = T.ToPILImage()(x.squeeze(0).cpu())
+orig_pil = T.ToPILImage()(x.squeeze(0).cpu())
 
-# # Decode tensor to image
-# decoded_clamped = torch.clamp(x_recon.squeeze(0).cpu(), 0, 1)
-# decoded_pil = T.ToPILImage()(decoded_clamped)
+# Decode tensor to image
+decoded_clamped = torch.clamp(x_recon.squeeze(0).cpu(), 0, 1)
+decoded_pil = T.ToPILImage()(decoded_clamped)
 
-# # Save both
-# orig_pil.save("original_image.png")
-# decoded_pil.save("decoded_image.png")
+# Save both
+orig_pil.save("original_image.png")
+decoded_pil.save("decoded_image.png")
 
 
-# import torch
-# def are_state_dicts_equal(model1, model2):
-#     sd1 = model1.state_dict()
-#     sd2 = model2.state_dict()
+import torch
+def are_state_dicts_equal(model1, model2):
+    sd1 = model1.state_dict()
+    sd2 = model2.state_dict()
 
-#     if sd1.keys() != sd2.keys():
-#         return False
+    if sd1.keys() != sd2.keys():
+        return False
 
-#     for key in sd1:
-#         if not torch.equal(sd1[key], sd2[key]):
-#             return False
-#     return True
+    for key in sd1:
+        if not torch.equal(sd1[key], sd2[key]):
+            return False
+    return True
 
-# are_state_dicts_equal(module.first_stage, diffusers_ae)
+are_state_dicts_equal(module.first_stage, diffusers_ae)
+
+# TODO:validation dataloader
+# TODO: wandb in config
+# TODO: precompute embeddings

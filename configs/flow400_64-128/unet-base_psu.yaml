@@ -74,7 +74,7 @@ model:
       target: fmboost.metrics.ImageMetricTracker
       params:
         num_crops: 4
-        crop_size: 512
+        crop_size: 256 # crop size in validation
     # lr scheduler
     lr_scheduler_cfg:
       target: fmboost.lr_schedulers.get_constant_schedule_with_warmup
@@ -92,8 +92,13 @@ data:
       params: 
         folder: /workspace/datasets/jpg
         image_size: 256
-    batch_size: 1
-
+    validation:
+      target: "fmboost.dataloader.ImageDataset"
+      params:
+        folder: /workspace/datasets/jpg
+        image_size: 256
+    batch_size: 32
+    num_workers: 16
 
 
 train:
@@ -110,7 +115,7 @@ train:
     accumulate_grad_batches: 1
     log_every_n_steps: 50       # gradient update steps
     limit_val_batches: 64
-    val_check_interval: 5000    # steps, regardless of gradient accumulation
+    val_check_interval: 256    # steps, regardless of gradient accumulation
     precision: bf16-mixed
   callbacks:
     - target: pytorch_lightning.callbacks.LearningRateMonitor

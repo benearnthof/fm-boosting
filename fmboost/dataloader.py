@@ -62,7 +62,7 @@ class ImageDataset(Dataset):
     def __getitem__(self, index):
         path = self.paths[index]
         img = Image.open(path)
-        return self.transform(img)
+        return {"image": self.transform(img)}
 
 
 class DataModuleFromConfig(pl.LightningDataModule):
