@@ -130,8 +130,10 @@ class TrainerFMBoost(LightningModule):
         # first stage encoding
         self.scale_factor = scale_factor
         if True:
-            # self.first_stage = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").to("cuda")
-            self.first_stage = DiffusersAutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to("cuda")
+            # for uncompressed datasets:
+            self.first_stage = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").to("cuda")
+            # for imagenet.int8:
+            # self.first_stage = DiffusersAutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to("cuda")
             freeze(self.first_stage)
             self.first_stage.eval()
             if self.scale_factor == 1.0:

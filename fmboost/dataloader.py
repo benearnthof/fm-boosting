@@ -19,10 +19,20 @@ from torch.utils.data import Dataset
 import torchvision.transforms as T
 from torch import nn
 
+# imagenet.int8
 from streaming.base.format.mds.encodings import Encoding, _encodings
 from streaming import StreamingDataset
 from diffusers.models import AutoencoderKL
 from diffusers.image_processor import VaeImageProcessor
+
+# imagenet256
+from datasets import load_dataset
+import PIL
+import PIL.Image
+import PIL.ExifTags
+
+# Monkeypatch
+PIL.Image.ExifTags = PIL.ExifTags #lmao
 
 
 class uint8(Encoding):
@@ -41,9 +51,6 @@ _encodings["uint8"] = uint8
 # from diffusers.models import AutoencoderKL
 # VAE = AutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to("cuda:0").eval()
 
-
-
-from PIL import Image
 
 class ImageDataset(Dataset):
     def __init__(
@@ -99,8 +106,8 @@ class ImagenetDecodedDataset(StreamingDataset):
         batch = super().__getitem__(idx)
         latent = torch.from_numpy(batch['vae_output']).reshape(-1, 4, 32, 32).cuda().float()
         with torch.no_grad():
-            decoded = self.vae.decode(latent).sample.cpu()
-        decoded = VaeImageProcessor().postprocess(image = decoded.detach(), output_type="pt", do_denormalize = [True, True])[0]
+            decoded = self.vae.decode(latent).sample
+        decoded = VaeImageProcessor().postprocess(image = decoded, output_type="pt", do_denormalize = [True, True])[0]
         
         # dataloader will add batch dimension again
         decoded, latent = decoded.squeeze(0), latent.squeeze(0)
@@ -108,6 +115,49 @@ class ImagenetDecodedDataset(StreamingDataset):
             "image": decoded,
             "latent": latent
         }
+
+class HuggingfaceImagenet256(Dataset):
+    def __init__(self, split, image_size, augment_horizontal_flip=False, convert_image_to=None):
+        super().__init__()
+        self.hf_dataset = self.instantiate_ds(split) 
+        
+        maybe_convert_fn = self.convert_image_to_fn(convert_image_to) if convert_image_to else lambda x: x
+        
+        self.transform = T.Compose([
+            T.Lambda(maybe_convert_fn),
+            T.Resize(image_size),
+            T.RandomHorizontalFlip() if augment_horizontal_flip else T.Lambda(lambda x: x),
+            T.CenterCrop(image_size),
+            T.ToTensor()
+        ])
+    
+    @staticmethod
+    def instantiate_ds(split="train"):
+        ds = load_dataset("evanarlian/imagenet_1k_resized_256", cache_dir="/workspace/datasets/imagenet256")
+        if split=="train":
+            return ds["train"]
+        elif split=="val":
+            return ds["val"]
+        elif split=="test":
+            return ds["test"]
+        else:
+            raise NotImplementedError
+
+    def convert_image_to_fn(self, img_type):
+        def fn(image):
+            if image.mode == img_type:
+                return image
+            return image.convert(img_type)
+        return fn
+
+    def __len__(self):
+        return len(self.hf_dataset)
+
+    def __getitem__(self, idx):
+        sample = self.hf_dataset[idx]
+        img = sample["image"]
+        img = self.transform(img)
+        return {"image": img}
 
 
 class DataModuleFromConfig(pl.LightningDataModule):
@@ -125,7 +175,7 @@ class DataModuleFromConfig(pl.LightningDataModule):
         self.train = train
         self.validation = validation
         self.num_workers = num_workers
-        self.num_train_workers = 0
+        self.num_train_workers = 32
         self.num_val_workers = 16
         self.train_shuffle = False
         self.val_batch_size = val_batch_size if val_batch_size is not None else batch_size

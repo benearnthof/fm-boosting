@@ -56,3 +56,17 @@ mkdir ./checkpoints
 export HF_HOME=/workspace/checkpoints
 
 # TODO: Create secrets.yaml in fm-boosting and paste wandbapikey:
+# Downsampled OpenImagesV4Dataset: 
+magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
+aria2c --meta-download <magnet-link>
+aria2c --show-files <magnet-link>
+
+aria2c --select-file=2 -d /path/to/download/folder <magnet-link>
+
+# https://huggingface.co/datasets/evanarlian/imagenet_1k_resized_256
+pip install datasets
+
+apt update 
+apt install -y tmux
+
+# bs 32, 16 workers spu: 17, 1.25it/s

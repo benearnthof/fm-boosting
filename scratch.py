@@ -14,6 +14,7 @@ from omegaconf import OmegaConf
 # train.py passes config argument as string
 cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu.yaml")
 cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet.yaml")
+cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet256.yaml")
 # command line arguments that are missing from cfg:
 cfg.data
 
@@ -29,21 +30,19 @@ xd.setup()
 # so loader.train, loader.validation, loader.test are three different configs
 # these configs get passed into loader.setup
 
-# TODO: instantiate dataset and see if training works
-
-cfg.model.params.first_stage_cfg
-fmboost_ae = instantiate_from_config(cfg.model.params.first_stage_cfg)
-fmboost_ae = fmboost_ae.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").cuda()
+# cfg.model.params.first_stage_cfg
+# fmboost_ae = instantiate_from_config(cfg.model.params.first_stage_cfg)
+# fmboost_ae = fmboost_ae.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").cuda()
 
 from diffusers.models import AutoencoderKL as DiffusersAutoencoderKL
-isinstance(fmboost_ae, DiffusersAutoencoderKL)
+# isinstance(fmboost_ae, DiffusersAutoencoderKL)
 
 
 # Now how do we get this to train? 
 # Investigate train.py
 
 # where is this used?
-from fmboost.helpers import load_model_weights
+# from fmboost.helpers import load_model_weights
 
 # train args:
 # class train_args:
@@ -68,7 +67,7 @@ from fmboost.helpers import load_model_weights
 module = instantiate_from_config(cfg.model)
 
 
-diffusers_ae = DiffusersAutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to("cuda")
+diffusers_ae = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae").cuda()
 
 module.first_stage.to("cuda")
 # loader = instantiate_from_config(cfg.data)
@@ -132,3 +131,20 @@ are_state_dicts_equal(module.first_stage, diffusers_ae)
 # TODO: integrate with other models 
 # TODO: build docker container
 # TODO: Eval on test set
+
+
+
+# import torchvision.transforms as T
+# from fmboost.dataloader import HuggingfaceImagenet256
+
+# wrapped_dataset = HuggingfaceImagenet256(
+#     split="train",
+#     image_size=256,
+#     augment_horizontal_flip=True,
+#     convert_image_to=None
+# )
+
+# sample = wrapped_dataset[482749]
+# print(sample["image"].shape)  # should be torch.Size([3, 256, 256])
+
+# T.ToPILImage()(sample["image"]).save("sample.jpg")
