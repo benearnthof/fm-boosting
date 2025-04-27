@@ -6,7 +6,13 @@ git clone https://github.com/benearnthof/fm-boosting.git
 
 mkdir ./datasets
 cd ./datasets
+mkdir ./local_train_dir # for imagenet
+mkdir ./imagenet
 wget https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz
+
+sudo apt-get install pigz
+tar -I pigz -xvzf 102flowers.tgz --no-same-owner
+
 tar -xvzf 102flowers.tgz --no-same-owner
 
 # for imagenet.int8
@@ -16,6 +22,10 @@ pip install -U "huggingface_hub[cli]"
 huggingface-cli download --repo-type dataset cloneofsimo/imagenet.int8 --local-dir ./vae_mds
 pip install mosaicml-streaming
 
+cd /root
+cd /workspace
+cd fm-boosting
+bash gitconfig.sh
 
 # TOOD: replace with requirements.txt
 pip install omegaconf
@@ -32,7 +42,7 @@ pip install matplotlib
 pip install open_clip_torch
 pip install lpips
 pip install pytorch-fid
-pip uninstall numpy
+pip uninstall numpy -y
 pip install numpy==1.26.4
 # pip install -U tensorboardX
 pip install -U tensorboard

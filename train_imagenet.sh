@@ -12,4 +12,4 @@ fi
 wandb login "$KEY"
 
 # Now start training
-python train.py --config=/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu.yaml --use_wandb --name=imagenet
+python train.py --config=/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet.yaml --use_wandb --name=imagenet

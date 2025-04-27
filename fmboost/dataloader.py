@@ -13,11 +13,35 @@ from fmboost.helpers import load_partial_from_config
 from fmboost.helpers import exists
 
 from pathlib import Path
-from typing import List
+from typing import List, Any
 
 from torch.utils.data import Dataset
 import torchvision.transforms as T
 from torch import nn
+
+from streaming.base.format.mds.encodings import Encoding, _encodings
+from streaming import StreamingDataset
+from diffusers.models import AutoencoderKL
+from diffusers.image_processor import VaeImageProcessor
+
+
+class uint8(Encoding):
+    def encode(self, obj: Any) -> bytes:
+        return obj.tobytes()
+
+    def decode(self, data: bytes) -> Any:
+        x=  np.frombuffer(data, np.uint8).astype(np.float32)
+        return (x / 255.0 - 0.5) * 24.0
+
+_encodings["uint8"] = uint8
+
+# REMOTE_TRAIN_DIR = "/workspace/datasets/vae_mds" # this is the path you installed this dataset.
+# LOCAL_TRAIN_DIR = "/workspace/datasets/local_train_dir"
+
+# from diffusers.models import AutoencoderKL
+# VAE = AutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to("cuda:0").eval()
+
+
 
 from PIL import Image
 
@@ -64,6 +88,27 @@ class ImageDataset(Dataset):
         img = Image.open(path)
         return {"image": self.transform(img)}
 
+# import torch.multiprocessing as mp
+# mp.set_start_method('spawn', force=True)
+class ImagenetDecodedDataset(StreamingDataset):
+    def __init__(self, *args, vae=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.vae = AutoencoderKL.from_pretrained("stabilityai/sdxl-vae").to("cuda:0").eval()
+
+    def __getitem__(self, idx):
+        batch = super().__getitem__(idx)
+        latent = torch.from_numpy(batch['vae_output']).reshape(-1, 4, 32, 32).cuda().float()
+        with torch.no_grad():
+            decoded = self.vae.decode(latent).sample.cpu()
+        decoded = VaeImageProcessor().postprocess(image = decoded.detach(), output_type="pt", do_denormalize = [True, True])[0]
+        
+        # dataloader will add batch dimension again
+        decoded, latent = decoded.squeeze(0), latent.squeeze(0)
+        return {
+            "image": decoded,
+            "latent": latent
+        }
+
 
 class DataModuleFromConfig(pl.LightningDataModule):
     def __init__(self,
@@ -73,13 +118,16 @@ class DataModuleFromConfig(pl.LightningDataModule):
                  validation: dict = None,
                  test: dict = None,
                  shuffle_validation: bool = False,
-                 num_workers: int = 0,
+                 num_workers: int = 16,
                  ):
         super().__init__()
         self.batch_size = batch_size
         self.train = train
         self.validation = validation
         self.num_workers = num_workers
+        self.num_train_workers = 0
+        self.num_val_workers = 16
+        self.train_shuffle = False
         self.val_batch_size = val_batch_size if val_batch_size is not None else batch_size
         self.shuffle_validation = shuffle_validation
 
@@ -96,11 +144,11 @@ class DataModuleFromConfig(pl.LightningDataModule):
 
     def _train_dataloader(self):
         return DataLoader(self.datasets["train"], batch_size=self.batch_size,
-                          num_workers=self.num_workers, shuffle=True)
+                          num_workers=self.num_train_workers, shuffle=self.train_shuffle)
 
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"], batch_size=self.val_batch_size,
-                          num_workers=self.num_workers, shuffle=self.shuffle_validation)
+                          num_workers=self.num_val_workers, shuffle=self.shuffle_validation)
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.val_batch_size,
