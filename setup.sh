@@ -9,6 +9,14 @@ cd ./datasets
 wget https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz
 tar -xvzf 102flowers.tgz --no-same-owner
 
+# for imagenet.int8
+pip install hf_transfer
+export HF_HUB_ENABLE_HF_TRANSFER=True
+pip install -U "huggingface_hub[cli]"
+huggingface-cli download --repo-type dataset cloneofsimo/imagenet.int8 --local-dir ./vae_mds
+pip install mosaicml-streaming
+
+
 # TOOD: replace with requirements.txt
 pip install omegaconf
 pip install webdataset
