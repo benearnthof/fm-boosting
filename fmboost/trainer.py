@@ -22,6 +22,8 @@ from fmboost.helpers import load_partial_from_config
 
 from diffusers.models import AutoencoderKL as DiffusersAutoencoderKL
 
+import gc
+
 def hres_lres_pred_grid(hr_ims, lr_ims, hr_pred):
     # resize lr_ims if necessary
     if lr_ims.shape[-1] != hr_ims.shape[-1]:
@@ -52,7 +54,7 @@ class TrainerFMBoost(LightningModule):
             scale_factor: int = 1.0,
             lr: float = 1e-4,
             weight_decay: float = 0.,
-            n_images_to_vis: int = 16,
+            n_images_to_vis: int = 4,
             ema_rate: float = 0.99,
             ema_update_every: int = 100,
             ema_update_after_step: int = 1000,
@@ -404,8 +406,8 @@ class TrainerFMBoost(LightningModule):
         
         self.val_epochs += 1
         self.print(f"Val epoch {self.val_epochs} | Optimizer step {self.global_step}")
-
         torch.cuda.empty_cache()
+        gc.collect()
 
     def log_image(self, img, name):
         """

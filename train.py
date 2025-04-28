@@ -71,7 +71,7 @@ def main():
     """ Setup Logging """
     now = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     exp_name = f"{args.name}_{now}" if exists(args.name) else now
-    log_dir = os.path.join("logs", exp_name)
+    log_dir = os.path.join("/workspace/checkpoints/", exp_name)
     ckpt_dir = os.path.join(log_dir, "checkpoints")
     use_wandb_logging = args.use_wandb or args.use_wandb_offline
     
@@ -105,8 +105,8 @@ def main():
         flush_logs_every_n_steps=500
     )
     csv_logger.log_hyperparams(OmegaConf.to_container(cfg))
-    logger = [online_logger, csv_logger]
-
+    # logger = [online_logger, csv_logger]
+    logger = [online_logger]
     """ Setup dataloader """
     data = instantiate_from_config(cfg.data)
     # runs until here #################

@@ -12,4 +12,8 @@ fi
 wandb login "$KEY"
 
 # Now start training
-python train.py --config=/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet256.yaml --use_wandb --name=imagenet256
+python train.py \
+    --config=/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet256.yaml \
+    --use_wandb \
+    --name=imagenet256 \
+    --resume_checkpoint=/workspace/checkpoints/imagenet256_2025-04-28-07-13-25/checkpoints/last.ckpt
