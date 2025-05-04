@@ -109,4 +109,7 @@ Please cite our paper:
 ```
 
 ## Notes: 
-Try run Newton-Schulz optimizer https://arxiv.org/pdf/2409.20325
+Try integrating new Newton-Schulz optimizer https://arxiv.org/pdf/2409.20325
+Cite LDM 100k https://arxiv.org/pdf/2209.07162
+Cite QURE headCT https://arxiv.org/pdf/1803.05854
+
