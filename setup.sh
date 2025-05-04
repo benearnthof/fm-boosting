@@ -58,9 +58,12 @@ apt update
 apt install -y tmux
 
 apt install aria2 -y
+# QURE headstudy CT
+# aria2c "magnet:?xt=urn:btih:47e9d8aab761e75fd0a81982fa62bddf3a173831&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce"
 
 
-magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
+# downsampled open images
+#magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
 aria2c --meta-download <magnet-link>
 aria2c --show-files <magnet-link>
 aria2c --select-file=2 -d /path/to/download/folder <magnet-link>
