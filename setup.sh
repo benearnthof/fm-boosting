@@ -64,8 +64,9 @@ cd /workspace/datasets
 # aria2c "magnet:?xt=urn:btih:47e9d8aab761e75fd0a81982fa62bddf3a173831&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce"
 cd /qure.headct.study
 apt update && apt install -y unzip
-
-for f in *.zip; do unzip -q "$f" -d "${f%.zip}" && rm "$f"; done
+apt install -y parallel
+ls *.zip | parallel -j 8 'unzip -q {} -d {=s/.zip//=} && rm {}'
+# for f in *.zip; do unzip -q "$f" -d "${f%.zip}" && rm "$f"; done
 
 # downsampled open images
 #magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
