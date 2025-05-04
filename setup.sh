@@ -8,7 +8,6 @@ cd /workspace
 # cd ./datasets
 # mkdir ./local_train_dir # for imagenet
 # mkdir ./imagenet
-# mkdir ./QURE
 # # wget https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz
 
 # tar -xvzf 102flowers.tgz --no-same-owner
@@ -18,14 +17,11 @@ cd /workspace
 # cd /workspace
 # python3 -m venv venv
 source /workspace/venv/bin/activate
-
 # for imagenet.int8
 # pip install hf_transfer
-export HF_HUB_ENABLE_HF_TRANSFER=True
 # pip install -U "huggingface_hub[cli]"
 # huggingface-cli download --repo-type dataset cloneofsimo/imagenet.int8 --local-dir ./vae_mds
 # pip install mosaicml-streaming
-# TODO: Verify raw setup
 # pip install omegaconf
 # pip install webdataset
 # pip install pytorch-lightning
@@ -43,7 +39,10 @@ export HF_HUB_ENABLE_HF_TRANSFER=True
 # pip install -U tensorboardX
 # pip install -U tensorboard
 # pip install xformers
+# https://huggingface.co/datasets/evanarlian/imagenet_1k_resized_256
+# pip install datasets
 
+# guarantee np version
 # pip uninstall numpy -y
 # pip install numpy==1.26.4
 
@@ -53,24 +52,23 @@ export HF_HUB_ENABLE_HF_TRANSFER=True
 # HF home
 # if we're in workspace this functions like /root for our commands
 export HF_HOME=/workspace/checkpoints
-
-# TODO: Create secrets.yaml in fm-boosting and paste wandbapikey:
-# Downsampled OpenImagesV4Dataset: 
-magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
-aria2c --meta-download <magnet-link>
-aria2c --show-files <magnet-link>
-
-aria2c --select-file=2 -d /path/to/download/folder <magnet-link>
-
-# https://huggingface.co/datasets/evanarlian/imagenet_1k_resized_256
-pip install datasets
+export HF_HUB_ENABLE_HF_TRANSFER=True
 
 apt update 
 apt install -y tmux
 
+apt install aria2 -y
+
+
+magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
+aria2c --meta-download <magnet-link>
+aria2c --show-files <magnet-link>
+aria2c --select-file=2 -d /path/to/download/folder <magnet-link>
+
+
+
 # bs 32, 16 workers spu: 17, 1.25it/s
 
-cd /root
-cd /workspace
-cd fm-boosting
+cd /workspace/fm-boosting
 bash gitconfig.sh
+# TODO: Verify raw setup

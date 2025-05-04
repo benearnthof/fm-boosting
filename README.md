@@ -107,3 +107,6 @@ Please cite our paper:
       year={2024}
 }
 ```
+
+## Notes: 
+Try run Newton-Schulz optimizer https://arxiv.org/pdf/2409.20325
