@@ -6,22 +6,35 @@ import tempfile
 import random
 from webdataset import ShardWriter
 from pathlib import Path
+import pandas as pd
+import json
+import re
 
 # Config
 SOURCE_TAR = "ldm100k-data/LDM-data/LDM_100k.tar"
-Path(SOURCE_TAR).exists()
+assert Path(SOURCE_TAR).exists(), f"Source tar file {SOURCE_TAR} not found"
 SAMPLES_PER_SHARD = 32
-GCS_BUCKET = "gs://ldm100k-bucket/shards"
+GCS_BUCKET = "gs://ldm100k-bucket/shards/"
 SHARD_TEMPLATE = "data-%06d.tar"
 SHUFFLE_BUFFER_SIZE = 512  # In-memory shuffle buffer size
+METADATA_PATH = Path("/home/Bene/ldm100k-data/metadata/LDM_100k/participants.tsv")
 
-def upload_to_gcs(local_path):
-    subprocess.run(["gsutil", "-q", "cp", local_path, GCS_BUCKET], check=True)
-    os.remove(local_path)
+def upload_shard(fname):
+    os.system(f"gsutil cp {fname} {GCS_BUCKET}")
+    os.unlink(fname)
+
 
 def main():
+    meta = pd.read_csv(METADATA_PATH, sep="\t", index_col="participant_id")
     # Stream from the tar
     with tarfile.open(SOURCE_TAR, "r") as tar:
+        # members = tar.getmembers()[0:20]
+        # member = members[-1]
+        # fileobj = tar.extractfile(member)
+        # data = fileobj.read()
+        # output_path = "/home/Bene/ldm100k-data/metadata/LDM_100k/testfile.nii.gz"
+        # with open(output_path, "wb") as f:
+        #     f.write(data)
         buffer = []
         shard_id = 0
         sample_id = 0
@@ -35,14 +48,31 @@ def main():
                 continue
             data = fileobj.read()
 
-            # Build sample
-            ext = member.name.split(".")[-1]
-            sample = {
-                "__key__": f"{sample_id:08d}",
-                ext: data
-            }
-            buffer.append(sample)
-            sample_id += 1
+            # Check if the file is a .nii.gz file
+            if member.name.endswith(".nii.gz"):
+                # Build sample with the .nii.gz binary data
+                # Extract subject ID, e.g., sub-001234
+                match = re.search(r"sub-\d{6}", member.name)
+                if not match:
+                    continue  # Skip files without valid subject ID
+
+                subject_id = match.group(0)
+
+                if subject_id not in meta.index:
+                    continue  # Skip if no metadata
+
+                # Convert metadata row to dict
+                metadata_dict = meta.loc[subject_id].to_dict()
+
+                sample = {
+                    "__key__": f"{sample_id:08d}",
+                    "image.nii.gz": data,
+                    "json": json.dumps(metadata_dict)  # stores as .json in the shard
+                }
+                buffer.append(sample)
+                sample_id += 1
+                if shard_id+1 % 10 == 0:
+                    print(f"Current Shard: {shard_id} @ Shardsize of {SAMPLES_PER_SHARD}")
 
             # Shuffle and flush if buffer is full
             if len(buffer) >= SHUFFLE_BUFFER_SIZE:
@@ -65,14 +95,37 @@ def main():
                 write_and_upload_shard(buffer, shard_id)
 
 def write_and_upload_shard(samples, shard_id):
-    with tempfile.NamedTemporaryFile(suffix=".tar", delete=False) as tmpf:
-        tmpf.close()
-        with ShardWriter(tmpf.name, maxcount=len(samples)) as sink:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        shard_path = os.path.join(tmpdir, f"shard-{shard_id}%06d.tar")
+        # print(shard_path)
+        with ShardWriter(pattern=shard_path, maxcount=len(samples)) as sink:
             for sample in samples:
                 sink.write(sample)
 
         print(f"Uploading shard {shard_id}...")
-        upload_to_gcs(tmpf.name)
+        # get the actual path the writer saved the data to disk in
+        print(len(os.listdir(tmpdir)))
+        tarfile = os.path.join(tmpdir, os.listdir(tmpdir)[0])
+        # can only be one file since we unlink the file after every upload
+        upload_shard(tarfile)
+
 
 if __name__ == "__main__":
     main()
+
+
+# OUTPUT_DIR = Path("ldm100k-data/metadata")
+# OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# # Files to extract
+# METADATA_FILES = {
+#     "LDM_100k/dataset_description.json",
+#     "LDM_100k/participants.json",
+#     "LDM_100k/participants.tsv",
+# }
+
+# with tarfile.open(SOURCE_TAR, "r") as tar:
+#     for member in tar.getmembers():
+#         if member.name in METADATA_FILES:
+#             print(f"Extracting {member.name}")
+#             tar.extract(member, path=OUTPUT_DIR)
