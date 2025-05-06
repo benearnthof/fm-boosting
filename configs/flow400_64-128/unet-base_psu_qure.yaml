@@ -90,20 +90,13 @@ data:
     train: 
       target: fmboost.dataloader.QureHeadCTDataset
       params: 
-        local: "/workspace/datasets/local_train_dir"
-        remote: "/workspace/datasets/vae_mds"
-        epoch_size: 10000
-        # split: None
-        shuffle: True
-        shuffle_algo: "naive"
-        num_canonical_nodes: 1
+        root_dir: "/workspace/datasets/qure.headct.study"
         batch_size: 32
-        #folder: /workspace/datasets/jpg
-        #image_size: 256
+        image_size: 256
     validation:
       target: "fmboost.dataloader.ImageDataset"
       params:
-        folder: "/workspace/datasets/jpg"
+        folder: "/workspace/datasets/qure.headct.val"
         image_size: 256
     batch_size: 32
     num_workers: 0
@@ -125,7 +118,7 @@ train:
     accumulate_grad_batches: 1
     log_every_n_steps: 50       # gradient update steps
     limit_val_batches: 16
-    val_check_interval: 256    # steps, regardless of gradient accumulation
+    val_check_interval: 5000    # steps, regardless of gradient accumulation
     precision: bf16-mixed
   callbacks:
     - target: pytorch_lightning.callbacks.LearningRateMonitor
