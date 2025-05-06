@@ -1,4 +1,6 @@
 import os
+import glob
+import pydicom
 import torch
 import numpy as np
 import torchvision
@@ -6,7 +8,7 @@ import webdataset as wds
 import pytorch_lightning as pl
 from omegaconf import OmegaConf
 from omegaconf import ListConfig
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from fmboost.helpers import instantiate_from_config
 from fmboost.helpers import load_partial_from_config
@@ -15,9 +17,12 @@ from fmboost.helpers import exists
 from pathlib import Path
 from typing import List, Any
 
-from torch.utils.data import Dataset
 import torchvision.transforms as T
 from torch import nn
+
+# qure head ct
+from PIL import Image
+from functools import partial
 
 # imagenet.int8
 from streaming.base.format.mds.encodings import Encoding, _encodings
@@ -33,7 +38,6 @@ import PIL.ExifTags
 
 # Monkeypatch
 PIL.Image.ExifTags = PIL.ExifTags #lmao
-
 
 class uint8(Encoding):
     def encode(self, obj: Any) -> bytes:
@@ -158,6 +162,77 @@ class HuggingfaceImagenet256(Dataset):
         img = sample["image"]
         img = self.transform(img)
         return {"image": img}
+
+## Dicom dataset for QURE CT images
+# QURE_ROOT = Path(r"/workspace/datasets/qure.headct.study")
+
+# ds = QureHeadCTDataset(root_dir=QURE_ROOT, image_size=256)
+
+# first approach: Pseudo 3 channel images by stacking one image 3 times
+class QureHeadCTDataset(Dataset):
+    """
+    Dataset that takes in a folder of uncompressed .dcm images and returns
+    {"image": tensor, "latent", tensor}
+    """
+    def __init__(
+        self,
+        root_dir: str | Path,
+        image_size: int,
+        exts: List[str] = ['.dcm'],
+        augment_horizontal_flip = False,
+        convert_image_to = None,
+        window_size=3
+    ):
+        super().__init__()
+        if isinstance(root_dir, str):
+            root_dir = Path(root_dir)
+
+        assert root_dir.is_dir()
+
+        self.root_dir = root_dir
+        self.image_size = image_size
+
+        self.maybe_convert_fn = partial(self.convert_image_to_fn, convert_image_to) if exists(convert_image_to) else nn.Identity()
+
+        self.transform = T.Compose([
+            T.Lambda(self.maybe_convert_fn),
+            T.Resize(image_size),
+            T.RandomHorizontalFlip() if augment_horizontal_flip else nn.Identity(),
+            T.CenterCrop(image_size),
+            T.ToTensor()
+        ])
+        # Preprocess: find all bottom-most directories containing .dcm files
+        subdirs = [x for x in self.root_dir.glob('*/**/') if any(x.glob('*.dcm'))]
+        # self.dicom_paths = [subdir/f for f in os.listdir(subdir) if f.endswith('.dcm') for subdir in subdirs]
+        # self.dicom_paths = [subdir / f for subdir in subdirs for f in os.listdir(subdir) if f.endswith('.dcm')]
+        self.dicom_paths = [f for subdir in subdirs for f in Path(subdir).glob('*.dcm')]
+
+    def convert_image_to_fn(self, img_type, image):
+        if image.mode == img_type:
+            return image
+        return image.convert(img_type)
+
+    def __len__(self):
+        return len(self.dicom_paths)
+
+    def __getitem__(self, index):
+        path = self.dicom_paths[index]
+        dicom_data = pydicom.dcmread(path)
+        pixel_array = dicom_data.pixel_array.astype(np.float32)
+        # clip and normalize
+        hu_min, hu_max = -1000, 1000
+        pixel_array = np.clip(pixel_array, hu_min, hu_max)
+        pixel_array = ((pixel_array / 1000))
+        # Image.fromarray(((pixel_array + 1) * 127.5).clip(0,255).astype(np.uint8)).convert('L').save('output2.png')
+        image = Image.fromarray(pixel_array)
+        image = self.transform(image)
+        stacked_image = image.repeat(3, 1, 1)
+        # T.ToPILImage()(stacked_image).save('stacked_fauxcolor.png')
+        # stacked_np = (stacked_image.permute(1,2,0).cpu().numpy() * 255).astype(np.uint8)  # Shape: (H, W, 3)
+        # Image.fromarray(stacked_np).convert('L').save('stacked_grayscale.png')
+        return {"image": stacked_image}
+
+
 
 
 class DataModuleFromConfig(pl.LightningDataModule):
