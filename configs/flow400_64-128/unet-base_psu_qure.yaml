@@ -91,15 +91,14 @@ data:
       target: fmboost.dataloader.QureHeadCTDataset
       params: 
         root_dir: "/workspace/datasets/qure.headct.study"
-        batch_size: 32
         image_size: 256
     validation:
-      target: "fmboost.dataloader.ImageDataset"
+      target: "fmboost.dataloader.QureHeadCTDataset"
       params:
-        folder: "/workspace/datasets/qure.headct.val"
+        root_dir: "/workspace/datasets/qure.headct.val"
         image_size: 256
     batch_size: 32
-    num_workers: 0
+    num_workers: 32
 
 
 train:

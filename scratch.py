@@ -15,6 +15,7 @@ from omegaconf import OmegaConf
 cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu.yaml")
 cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet.yaml")
 cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_imagenet256.yaml")
+cfg = OmegaConf.load("/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_qure.yaml")
 # command line arguments that are missing from cfg:
 cfg.data
 

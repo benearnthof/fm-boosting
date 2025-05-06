@@ -36,11 +36,12 @@ source /workspace/venv/bin/activate
 # huggingface-cli download --repo-type dataset cloneofsimo/imagenet.int8 --local-dir ./vae_mds
 
 pip install mosaicml-streaming
+# pip install -j $(nproc) pytorch-lightning
+
 pip install omegaconf
 pip install webdataset
 pip install pytorch-lightning
 pip install diffusers["torch"] transformers
-pip install wandb
 pip install einops
 pip install torchdiffeq
 pip install torchmetrics
@@ -62,6 +63,12 @@ pip install --upgrade pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg
 pip install pydicom
 
 # guarantee np version
+pip uninstall wandb -y
+pip install wandb==0.19.8
+
+pip uninstall numpy;
+rm -rI numpy;
+
 pip uninstall numpy -y
 pip install numpy==1.26.4
 pip list | grep numpy
@@ -94,3 +101,5 @@ export HF_HUB_ENABLE_HF_TRANSFER=True
 cd /workspace/fm-boosting
 bash gitconfig.sh
 # TODO: Verify raw setup
+
+# EMPTY PIP CACHE
