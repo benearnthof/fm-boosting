@@ -1,45 +1,36 @@
-cd /root
-cd /workspace
 
-# git clone https://github.com/benearnthof/fm-boosting.git
-# # dataset
-
-mkdir ./datasets
-cd ./datasets
 # mkdir ./local_train_dir # for imagenet
 # mkdir ./imagenet
 # # wget https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz
 
 # tar -xvzf 102flowers.tgz --no-same-owner
 # rm 102flowers.tgz
-apt update 
-apt install -y tmux
 
-apt install aria2 -y
 # QURE headstudy CT
 cd /workspace/datasets
 aria2c "magnet:?xt=urn:btih:47e9d8aab761e75fd0a81982fa62bddf3a173831&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce"
 cd /qure.headct.study
-apt update && apt install -y unzip
-apt install -y parallel
+
 # this takes a couple minutes
 ls *.zip | parallel -j 8 'unzip -q {} -d {=s/.zip//=} && rm {}'
 # for f in *.zip; do unzip -q "$f" -d "${f%.zip}" && rm "$f"; done
 
 # venv on persistent storage
-cd /workspace
-python3 -m venv venv
-source /workspace/venv/bin/activate
+
 # for imagenet.int8
-# pip install hf_transfer
-# pip install -U "huggingface_hub[cli]"
+export MAKEFLAGS="-j$(nproc)"
+pip install --upgrade pip setuptools wheel
+
+pip install hf_transfer
+pip install -U "huggingface_hub[cli]"
 # huggingface-cli download --repo-type dataset cloneofsimo/imagenet.int8 --local-dir ./vae_mds
 
 pip install mosaicml-streaming
-# pip install -j $(nproc) pytorch-lightning
+# pip install -j $(nproc) mosaicml-streaming
 
 pip install omegaconf
 pip install webdataset
+pip install --install-option="--jobs=6" pytorch-lightning
 pip install pytorch-lightning
 pip install diffusers["torch"] transformers
 pip install einops
@@ -58,16 +49,16 @@ pip install xformers
 pip install datasets
 
 # required for pydicom on VM
-apt-get update && apt-get install -y libgdcm-tools python3-gdcm
+
 pip install --upgrade pylibjpeg pylibjpeg-libjpeg pylibjpeg-openjpeg
 pip install pydicom
 
 # guarantee np version
-pip uninstall wandb -y
-pip install wandb==0.19.8
+# pip uninstall wandb -y
+# pip install wandb==0.19.8
 
-pip uninstall numpy;
-rm -rI numpy;
+# pip uninstall numpy;
+# rm -rI numpy;
 
 pip uninstall numpy -y
 pip install numpy==1.26.4
@@ -77,9 +68,6 @@ pip list | grep numpy
 # mkdir ./checkpoints 
 # HF home
 # if we're in workspace this functions like /root for our commands
-export HF_HOME=/workspace/checkpoints
-export HF_HUB_ENABLE_HF_TRANSFER=True
-
 
 # downsampled open images
 #magnet:?xt=urn:btih:9208d33aceb2ca3eb2beb70a192600c9c41efba1&tr=https%3A%2F%2Facademictorrents.com%2Fannounce.php&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337%2Fannounce
@@ -98,8 +86,7 @@ export HF_HUB_ENABLE_HF_TRANSFER=True
 
 # bs 32, 16 workers spu: 17, 1.25it/s
 
-cd /workspace/fm-boosting
-bash gitconfig.sh
+
 # TODO: Verify raw setup
 
 # EMPTY PIP CACHE

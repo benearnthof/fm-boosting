@@ -13,3 +13,10 @@ export HF_HUB_ENABLE_HF_TRANSFER=True
 cd /workspace/fm-boosting
 bash gitconfig.sh
 
+cd /workspace
+python3 -m venv venv
+source /workspace/venv/bin/activate
+
+
+mkdir ./checkpoints
+mkdir ./datasets
