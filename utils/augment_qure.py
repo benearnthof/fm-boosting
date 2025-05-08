@@ -13,7 +13,7 @@ def get_safe_worker_count():
 
 # process one time for train set
 # one time for val set
-QURE_ROOT = Path(r"/workspace/datasets/qure.headct.study")
+QURE_ROOT = Path(r"/workspace/datasets/qure.headct.val")
 root_dir = QURE_ROOT
 image_size = 256
 
@@ -97,7 +97,7 @@ def process_volume(folder_idx_pair):
         slices = [pydicom.dcmread(f) for f in dicom_files]
         volume = np.stack([s.pixel_array for s in slices])
         reference_dcm = slices[len(slices) // 2]  # Use middle slice for metadata
-        save_augmented_slices_as_dicom(volume, reference_dcm, Path(r"/workspace/datasets/qure.headct.study/augmented"), idx)
+        save_augmented_slices_as_dicom(volume, reference_dcm, Path(r"/workspace/datasets/qure.headct.val/augmented"), idx)
         return idx  # Success
     except Exception as e:
         print(f"[{idx}] Error processing {folder}:\n{e}\n{traceback.format_exc()}")

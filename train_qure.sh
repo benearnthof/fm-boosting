@@ -15,4 +15,4 @@ wandb login "$KEY"
 python train.py \
   --config=/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_qure.yaml \
   --use_wandb \
-  --name=QURE_STACKED
+  --name=QURE_AUGMENTED

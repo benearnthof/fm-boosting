@@ -242,7 +242,7 @@ class DataModuleFromConfig(pl.LightningDataModule):
                  train: dict = None,
                  validation: dict = None,
                  test: dict = None,
-                 shuffle_validation: bool = False,
+                 shuffle_validation: bool = True,
                  num_workers: int = 16,
                  ):
         super().__init__()
