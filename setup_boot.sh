@@ -20,3 +20,9 @@ source /workspace/venv/bin/activate
 
 mkdir ./checkpoints
 mkdir ./datasets
+
+pip list | grep numpy
+
+export OMP_NUM_THREADS=1
+# export MKL_NUM_THREADS=1
+# export NUMEXPR_NUM_THREADS=1

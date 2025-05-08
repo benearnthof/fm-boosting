@@ -98,7 +98,7 @@ data:
         root_dir: "/workspace/datasets/qure.headct.val"
         image_size: 256
     batch_size: 32
-    num_workers: 32
+    num_workers: 8
 
 
 train:
@@ -116,8 +116,8 @@ train:
     num_sanity_val_steps: 0
     accumulate_grad_batches: 1
     log_every_n_steps: 50       # gradient update steps
-    limit_val_batches: 16
-    val_check_interval: 5000    # steps, regardless of gradient accumulation
+    limit_val_batches: 8
+    val_check_interval: 1.0    # steps, regardless of gradient accumulation
     precision: bf16-mixed
   callbacks:
     - target: pytorch_lightning.callbacks.LearningRateMonitor

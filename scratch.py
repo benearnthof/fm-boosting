@@ -1,10 +1,12 @@
-from diffusers import StableDiffusionPipeline
 import torch
-
+import wandb
 from diffusers.models import AutoencoderKL as DiffusersAutoencoderKL
 import os
 from pathlib import Path
+
 os.getenv("HF_HOME")
+os.getenv("OMP_NUM_THREADS")
+os.getenv("MKL_NUM_THREADS")
 Path(os.getenv("HF_HOME")).exists()
 
 # diffusers_ae = DiffusersAutoencoderKL.from_pretrained("sd-legacy/stable-diffusion-v1-5", subfolder="vae")
@@ -119,13 +121,13 @@ are_state_dicts_equal(module.first_stage, diffusers_ae)
 
 
 
-# TODO: precompute embeddings
-# 5-10 epochs on oxford flowers already yields really good results.
-# Larger image dataset
-# TODO: aria2c for academic torrent of CT images
 # TODO: preprocess CT image dataset into nice slices/custom dataloader.
 # CT images/Single channel images
 # Check if the latents of the autoencoder are meaningful 
+# Loading DICOM images takes 1:10:00 on a single A40 per epoch.
+    # We should preprocess all images into the 1x256x256 np arrays
+    # that should further speed up loading of batches 
+
 # TODO: check sampling from checkpoint
 # TODO: use tmux to train so ssh session doesnt crash
 # TODO: triplecheck training parameters from paper
