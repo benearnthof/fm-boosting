@@ -93,4 +93,38 @@ def process_all(subdirs, output_dir=Path(r"D:\Torrents\QureHeadAugmented")):
         except Exception as e:
             print(f"[{idx}] Error processing {folder}: {e}")
 
-process_all(subdirs)
+# process_all(subdirs)
+
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
+import traceback
+
+def process_volume(folder_idx_pair):
+    idx, folder = folder_idx_pair
+    try:
+        dicom_files = sorted(Path(folder).glob('*.dcm'), key=lambda x: int(pydicom.dcmread(x, stop_before_pixels=True).InstanceNumber))
+        if len(dicom_files) < 128:
+            return None  # Skip
+        
+        slices = [pydicom.dcmread(f) for f in dicom_files]
+        volume = np.stack([s.pixel_array for s in slices])
+        reference_dcm = slices[len(slices) // 2]  # Use middle slice for metadata
+        save_augmented_slices_as_dicom(volume, reference_dcm, Path(r"D:\Torrents\QureHeadAugmented"), idx)
+        return idx  # Success
+    except Exception as e:
+        print(f"[{idx}] Error processing {folder}:\n{e}\n{traceback.format_exc()}")
+        return None
+
+def process_all_parallel(subdirs, max_workers=os.cpu_count()):
+    folder_idx_pairs = list(enumerate(subdirs))
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_volume, pair) for pair in folder_idx_pairs]
+        for _ in tqdm(as_completed(futures), total=len(futures), desc="Processing volumes"):
+            pass
+
+# Run it
+
+if __name__ == "__main__":
+    root_dir = QURE_ROOT
+    subdirs = [x for x in root_dir.glob('*/**/') if any(x.glob('*.dcm'))]
+    process_all_parallel(subdirs)
