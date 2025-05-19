@@ -15,4 +15,5 @@ wandb login "$KEY"
 python train.py \
   --config=/workspace/fm-boosting/configs/flow400_64-128/unet-base_psu_qure.yaml \
   --use_wandb \
-  --name=QURE_AUGMENTED
+  --name=QURE_AUGMENTED_20K \
+  --resume_checkpoint=/workspace/checkpoints/QURE_AUGMENTED_2025-05-08-18-20-03/checkpoints/step020000.ckpt
